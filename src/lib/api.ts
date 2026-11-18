@@ -1,8 +1,13 @@
-﻿const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 const localFrontend = typeof window !== 'undefined'
   && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const configuredHost = configuredUrl ? (() => {
+  try { return new URL(configuredUrl).hostname.toLowerCase(); }
+  catch { return ''; }
+})() : '';
+const configuredIsLocal = ['localhost', '127.0.0.1', '[::1]'].includes(configuredHost);
 const defaultUrl = localFrontend ? 'http://localhost:4000' : 'https://content-calendar-backend.vercel.app';
-const base = (configuredUrl || defaultUrl).replace(/\/$/, '');
+const base = (configuredUrl && (!configuredIsLocal || localFrontend) ? configuredUrl : defaultUrl).replace(/\/$/, '');
 export const API_BASE = base.endsWith('/api') ? base : base + '/api';
 
 export function token() {
