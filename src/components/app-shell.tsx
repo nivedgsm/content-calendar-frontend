@@ -61,10 +61,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return <div className="app-shell">
     <aside className="sidebar">
-      <div className="flex items-center gap-3 px-3 mb-9">
-        <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center"><Sparkles size={19}/></div>
-        <div className="brand-label"><div className="font-extrabold text-[17px] tracking-tight">contentflow</div><div className="text-[9px] tracking-[.2em] text-slate-400 font-bold">{role === 'CLIENT' ? 'CLIENT PORTAL' : 'AGENCY WORKSPACE'}</div></div>
-      </div>
+     <div className="flex items-center gap-3 px-3 mb-9">
+  {/* GSM Logo */}
+  <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
+    <img
+      src="/mascot-logo.png"
+      alt="GSM Logo"
+      className="w-full h-full object-contain"
+    />
+  </div>
+
+  {/* Brand Text */}
+  <div className="brand-label min-w-0">
+    <div className="font-extrabold text-[16px] leading-tight tracking-tight whitespace-nowrap">
+      Global studio Media
+    </div>
+
+    <div className="text-[10px] mt-1 tracking-[.18em] text-slate-400 font-bold whitespace-nowrap">
+      {role === 'CLIENT' ? 'CLIENT PORTAL' : 'AGENCY WORKSPACE'}
+    </div>
+  </div>
+</div>
       <div className="workspace-label text-[10px] uppercase tracking-[.16em] text-slate-500 font-bold px-3 mb-2">{role === 'CLIENT' ? 'My workspace' : 'Workspace'}</div>
       <nav>{links.map(([href, label, Icon]) => <Link key={href} href={href} className={'nav-link ' + (path === href ? 'active' : '')}><Icon size={18}/><span className="nav-label">{label}</span></Link>)}</nav>
       <div className="mt-auto">

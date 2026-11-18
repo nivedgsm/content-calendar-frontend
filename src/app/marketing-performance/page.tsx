@@ -1,4 +1,5 @@
-﻿"use client";
+﻿
+"use client";
 
 import { useEffect, useMemo, useState } from 'react';
 import AppShell from '@/components/app-shell';
@@ -93,6 +94,7 @@ export default function MarketingPerformance() {
     () => items.reduce((total, item) => total + Number(item.spendRupees || 0), 0),
     [items],
   );
+
   const activeCount = useMemo(() => {
     const now = Date.now();
     return items.filter(item => new Date(item.uploadedAt).getTime() <= now
@@ -179,10 +181,12 @@ export default function MarketingPerformance() {
         imagePublicId: image.imagePublicId,
         notes: form.notes.trim() || null,
       };
+
       await api(editing ? '/marketing-performance/' + editing.id : '/marketing-performance', {
         method: editing ? 'PUT' : 'POST',
         body: JSON.stringify(payload),
       });
+
       closeEditor();
       await load();
     } catch (cause: any) {
@@ -265,9 +269,20 @@ export default function MarketingPerformance() {
                     key={event.item.id + event.kind}
                     onClick={() => openActivity(event.item)}
                     className="event-title rounded-md px-1.5 py-1 text-[10px] font-bold truncate w-full text-left"
-                    style={{ background: (event.kind === 'uploaded' ? (event.item.client?.color || '#7567F8') : '#64748b') + '18', color: event.kind === 'uploaded' ? (event.item.client?.color || '#7567F8') : '#64748b' }}
-                    title={(event.kind === 'uploaded' ? 'Creative uploaded: ' : 'Creative taken down: ') + event.item.creativeName}>
-                    <span className="mr-1">{event.kind === 'uploaded' ? 'UP' : 'DOWN'}</span>{event.item.creativeName}
+                    style={{
+                      background: event.kind === 'uploaded' ? '#16A34A18' : '#DC262618',
+                      color: event.kind === 'uploaded' ? '#16A34A' : '#DC2626',
+                    }}
+                    title={
+                      (event.kind === 'uploaded'
+                        ? 'Creative uploaded: '
+                        : 'Creative taken down: ') + event.item.creativeName
+                    }
+                  >
+                    <span className="mr-1">
+                      {event.kind === 'uploaded' ? 'UP' : 'DOWN'}
+                    </span>
+                    {event.item.creativeName}
                   </button>)}
                   {eventsForDay(day).length > 3 && <div className="text-[9px] text-slate-400">+{eventsForDay(day).length - 3} more</div>}
                 </div>
