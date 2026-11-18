@@ -1,4 +1,4 @@
-const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
+const base = (process.env.NEXT_PUBLIC_API_URL || 'https://content-calendar-backend.vercel.app').replace(/\/$/, '');
 const API = base.endsWith('/api') ? base : `${base}/api`;
 
 export function token() {
