@@ -56,7 +56,8 @@ export async function api<T = any>(path: string, options: RequestInit = {}): Pro
   const endpoint = API_BASE + (path.startsWith('/') ? path : '/' + path);
   const send = () => {
     const headers = new Headers(options.headers);
-    if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+    if (options.body && !isFormData && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
     const access = token();
     if (access) headers.set('Authorization', 'Bearer ' + access);
     return fetch(endpoint, { ...options, headers, cache: 'no-store' });

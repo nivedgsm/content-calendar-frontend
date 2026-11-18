@@ -2,12 +2,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { CalendarDays, LayoutDashboard, LogOut, Settings, Sparkles, Users, Video } from 'lucide-react';
+import { BarChart3, CalendarDays, LayoutDashboard, LogOut, Settings, Sparkles, Users, Video } from 'lucide-react';
 import NotificationsBell from '@/components/notifications-bell';
 import { API_BASE } from '@/lib/api';
 
-const agencyLinks = [['/dashboard', 'Overview', LayoutDashboard], ['/calendar', 'Content calendar', CalendarDays], ['/clients', 'Clients', Users], ['/shoots', 'Shoot calendar', Video]] as const;
-const clientLinks = [['/dashboard', 'My workspace', LayoutDashboard], ['/calendar', 'Content calendar', CalendarDays], ['/shoots', 'Shoot calendar', Video]] as const;
+const agencyLinks = [['/dashboard', 'Overview', LayoutDashboard], ['/calendar', 'Content calendar', CalendarDays], ['/clients', 'Clients', Users], ['/shoots', 'Shoot calendar', Video], ['/marketing-performance', 'Ad performance', BarChart3]] as const;
+const clientLinks = [['/dashboard', 'My workspace', LayoutDashboard], ['/calendar', 'Content calendar', CalendarDays], ['/shoots', 'Shoot calendar', Video], ['/marketing-performance', 'Ad performance', BarChart3]] as const;
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -77,7 +77,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden sm:flex justify-end px-5 md:px-9 pt-4 print-hide"><NotificationsBell/></div>
       <div className="mobile-top hidden flex-col bg-white border-b border-slate-100 px-4 py-3">
         <div className="flex items-center justify-between"><b>contentflow</b><div className="flex items-center gap-3"><NotificationsBell/><button onClick={logout} className="text-xs text-slate-500">Sign out</button></div></div>
-        <nav className={'mobile-nav grid ' + (role === 'CLIENT' ? 'grid-cols-3' : 'grid-cols-4') + ' gap-1 w-full mt-3'}>{links.map(([href, label, Icon]) => <Link key={href} href={href} className={'mobile-nav-link ' + (path === href ? 'active' : '')}><Icon size={17}/><span>{label}</span></Link>)}</nav>
+        <nav className={'mobile-nav grid ' + (role === 'CLIENT' ? 'grid-cols-4' : 'grid-cols-5') + ' gap-1 w-full mt-3'}>{links.map(([href, label, Icon]) => <Link key={href} href={href} className={'mobile-nav-link ' + (path === href ? 'active' : '')}><Icon size={17}/><span>{label}</span></Link>)}</nav>
       </div>
       {children}
     </main>
