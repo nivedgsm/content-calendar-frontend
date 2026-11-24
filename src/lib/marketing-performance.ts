@@ -1,4 +1,9 @@
-export type MarketingImage = { imageUrl: string; imagePublicId?: string | null };
+export type UploadedMarketingImage = { imageUrl: string; imagePublicId: string };
+
+type MarketingImage = Omit<UploadedMarketingImage, 'imagePublicId'> & {
+  id: string;
+  imagePublicId: string | null;
+};
 
 export type MarketingActivity = {
   id: string;

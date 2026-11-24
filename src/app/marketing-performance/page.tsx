@@ -1,11 +1,11 @@
-﻿
+
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
 import AppShell from '@/components/app-shell';
 import Modal from '@/components/modal';
 import { api, fmtDate } from '@/lib/api';
-import { adSpendGstNotice, dailySpend, formatMarketingMetrics, marketingCurrency, marketingImageUrls, marketingReportCsv, type MarketingActivity, type MarketingImage } from '@/lib/marketing-performance';
+import { adSpendGstNotice, dailySpend, formatMarketingMetrics, marketingCurrency, marketingImageUrls, marketingReportCsv, type MarketingActivity, type UploadedMarketingImage } from '@/lib/marketing-performance';
 import { useUserRole } from '@/lib/use-user-role';
 import { BarChart3, ChevronLeft, ChevronRight, Download, ImagePlus, Plus, Printer, Trash2, UploadCloud } from 'lucide-react';
 
@@ -47,7 +47,7 @@ const MAX_IMAGES_PER_SAVE = 10;
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-type PendingImage = { file: File; uploaded?: MarketingImage };
+type PendingImage = { file: File; uploaded?: UploadedMarketingImage };
 
 function PendingImagePreview({ file }: { file: File }) {
   const [url, setUrl] = useState('');
@@ -186,14 +186,22 @@ export default function MarketingPerformance() {
     setBusy(true);
     setError('');
     try {
-      const images: MarketingImage[] = [];
+      const images: UploadedMarketingImage[] = [];
       for (const pending of pendingImages) {
         let uploaded = pending.uploaded;
         if (!uploaded) {
           const upload = new FormData();
           upload.append('image', pending.file);
-          uploaded = await api<MarketingImage>('/marketing-performance/upload', { method: 'POST', body: upload });
-          setPendingImages(previous => previous.map(entry => entry.file === pending.file ? { ...entry, uploaded } : entry));
+          try {
+            uploaded = await api<UploadedMarketingImage>('/marketing-performance/upload', { method: 'POST', body: upload });
+          } catch (cause) {
+            const detail = cause instanceof Error ? cause.message : 'Upload failed.';
+            throw new Error(pending.file.name + ' — ' + detail);
+          }
+          const savedUpload = uploaded;
+          setPendingImages(previous => previous.map(entry =>
+            entry.file === pending.file ? { ...entry, uploaded: savedUpload } : entry,
+          ));
         }
         images.push(uploaded);
       }
@@ -211,7 +219,7 @@ export default function MarketingPerformance() {
         totalResult: form.totalResult.trim() || null,
         costPerResult: optionalNumber(form.costPerResult),
         takenDownAt: toIso(form.takenDownAt),
-        images,
+        images: images.length ? images : undefined,
         notes: form.notes.trim() || null,
       };
 
