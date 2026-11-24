@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import AppShell from '@/components/app-shell';
 import { api, fmtDate } from '@/lib/api';
+import { adSpendGstNotice, formatMarketingMetrics, marketingImageUrls, type MarketingActivity } from '@/lib/marketing-performance';
 import { Users, CalendarDays, Video, ArrowUpRight, Plus, BarChart3, IndianRupee } from 'lucide-react';
 import Link from 'next/link';
 
@@ -11,8 +12,8 @@ export default function Dashboard() {
   const [data, setData] = useState<any>(null);
   const [err, setErr] = useState('');
   const [user, setUser] = useState<any>({});
-  const [marketing, setMarketing] = useState<any[]>([]);
-  const [recentMarketing, setRecentMarketing] = useState<any[]>([]);
+  const [marketing, setMarketing] = useState<MarketingActivity[]>([]);
+  const [recentMarketing, setRecentMarketing] = useState<MarketingActivity[]>([]);
   const [marketingError, setMarketingError] = useState('');
 
   useEffect(() => {
@@ -28,11 +29,11 @@ export default function Dashboard() {
 
     const month = new Date().toISOString().slice(0, 7);
 
-    api(`/marketing-performance?month=${month}`)
+    api<MarketingActivity[]>(`/marketing-performance?month=${month}`)
       .then(setMarketing)
       .catch(() => setMarketing([]));
 
-    api<any[]>('/marketing-performance')
+    api<MarketingActivity[]>('/marketing-performance')
       .then(setRecentMarketing)
       .catch(e => {
         setRecentMarketing([]);
@@ -41,6 +42,7 @@ export default function Dashboard() {
   }, []);
 
   const clientView = user.role === 'CLIENT';
+  const now = new Date();
 
   const activeCampaigns = marketing.filter(item =>
     new Date(item.uploadedAt).getTime() <= Date.now()
@@ -92,7 +94,7 @@ export default function Dashboard() {
               {clientView
                 ? `Welcome, ${user.name || 'to your workspace'}`
                 : 'Good to see you, team'
-              } <span>✦</span>
+              } <span></span>
             </h1>
 
             <p className="text-sm text-slate-500 mt-1">
@@ -289,12 +291,14 @@ export default function Dashboard() {
               </Link>
             </div>
 
+            <p className="mx-5 mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{adSpendGstNotice}</p>
+
             {marketingError ? (
               <div role="alert" className="px-5 pb-6 text-sm text-red-600">{marketingError}</div>
-            ) : recentMarketing.length ? recentMarketing.slice(0, 5).map((item: any) => (
+            ) : recentMarketing.length ? recentMarketing.slice(0, 5).map(item => (
               <div key={item.id} className="px-5 py-4 border-t border-slate-100 flex flex-wrap items-center gap-4">
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt="" className="w-14 h-14 rounded-xl object-cover bg-slate-100" />
+                {marketingImageUrls(item)[0] ? (
+                  <img src={marketingImageUrls(item)[0]} alt="" className="w-14 h-14 rounded-xl object-cover bg-slate-100" />
                 ) : (
                   <div className="w-14 h-14 rounded-xl bg-slate-100 grid place-items-center text-xs text-slate-400">Ad</div>
                 )}
@@ -308,6 +312,14 @@ export default function Dashboard() {
                 <div className="font-extrabold text-sm">
                   {formatRupees.format(Number(item.spendRupees || 0))}
                 </div>
+                <dl className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3">
+                  {formatMarketingMetrics(item, now).map(([label, value]) => (
+                    <div key={label} className="min-w-0">
+                      <dt className="text-xs text-slate-500">{label}</dt>
+                      <dd className="text-sm font-semibold whitespace-pre-wrap break-words">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             )) : (
               <div className="px-5 pb-6 text-sm text-slate-400">
