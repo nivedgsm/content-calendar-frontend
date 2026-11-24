@@ -53,7 +53,13 @@ async function refreshSession(): Promise<boolean> {
 }
 
 export async function api<T = any>(path: string, options: RequestInit = {}): Promise<T> {
-  const endpoint = API_BASE + (path.startsWith('/') ? path : '/' + path);
+  const apiPath = path.startsWith('/') ? path : '/' + path;
+  const pathname = apiPath.split('?')[0];
+  const useReadRewrite = typeof window !== 'undefined'
+    && process.env.NEXT_PUBLIC_API_READ_REWRITES === '1'
+    && (options.method ?? 'GET').toUpperCase() === 'GET'
+    && ['/dashboard/stats', '/marketing-performance', '/marketing-performance/summary'].includes(pathname);
+  const endpoint = (useReadRewrite ? '/backend-read' : API_BASE) + apiPath;
   const send = () => {
     const headers = new Headers(options.headers);
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
