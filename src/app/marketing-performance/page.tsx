@@ -64,7 +64,9 @@ export default function MarketingPerformance() {
   const canManage = role === 'ADMIN' || role === 'TEAM_MEMBER';
   const [date, setDate] = useState(() => new Date());
   const [items, setItems] = useState<MarketingActivity[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+  const [clientsError, setClientsError] = useState('');
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [view, setView] = useState<'month' | 'list'>('month');
   const [editorOpen, setEditorOpen] = useState(false);
@@ -85,21 +87,36 @@ export default function MarketingPerformance() {
   const clientQuery = canManage && filter ? '&clientId=' + encodeURIComponent(filter) : '';
   const activitiesPath = '/marketing-performance?month=' + month + clientQuery;
 
-  async function load() {
+  async function load(signal?: AbortSignal) {
+    setLoading(true);
+    setError('');
     try {
-      setError('');
-      const results = await Promise.all([
-        api<any[]>('/clients'),
-        api<MarketingActivity[]>(activitiesPath),
-      ]);
-      setClients(results[0]);
-      setItems(results[1]);
+      const activities = await api<MarketingActivity[]>(activitiesPath, { signal });
+      if (!signal?.aborted) setItems(activities);
     } catch (cause: any) {
-      setError(cause.message || 'Could not load marketing performance.');
+      if (!signal?.aborted) setError(cause.message || 'Could not load marketing performance.');
+    } finally {
+      if (!signal?.aborted) setLoading(false);
     }
   }
 
-  useEffect(() => { load(); }, [month, filter, canManage]);
+  useEffect(() => {
+    if (!role) return;
+    const controller = new AbortController();
+    setItems([]);
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [activitiesPath, role]);
+
+  useEffect(() => {
+    if (!canManage) return;
+    const controller = new AbortController();
+    const { signal } = controller;
+    api<{ id: string; name: string }[]>('/clients', { signal })
+      .then(setClients)
+      .catch(cause => { if (!signal.aborted) setClientsError(cause.message || 'Could not load clients.'); });
+    return () => controller.abort();
+  }, [canManage]);
 
   const totalSpend = useMemo(
     () => items.reduce((total, item) => total + Number(item.spendRupees || 0), 0),
@@ -297,6 +314,8 @@ export default function MarketingPerformance() {
 
       {/* {role === 'CLIENT' && <p className="mb-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{adSpendGstNotice}</p>} */}
 
+      {clientsError && <p role="alert" className="text-sm text-red-600 mb-4">{clientsError}</p>}
+      {loading && <p role="status" className="text-sm text-slate-500 mb-4 print-hide">Loading ad performance…</p>}
       {error && !editorOpen && <div role="alert" className="panel p-4 text-sm text-red-600 mb-5">{error}</div>}
 
       <section className="panel p-4 calendar-export-panel">
@@ -353,7 +372,7 @@ export default function MarketingPerformance() {
             </div>)}
           </div>
         </> : <div>
-          {visibleList.length === 0 && <div className="p-10 text-center text-sm text-slate-400">No ad activity for this month.</div>}
+          {!loading && !error && visibleList.length === 0 && <div className="p-10 text-center text-sm text-slate-400">No ad activity for this month.</div>}
           {visibleList.map(item => {
             const [cover] = marketingImageUrls(item);
             return <button key={item.id} onClick={() => openActivity(item)} className="w-full text-left py-4 border-t border-slate-100 flex flex-wrap gap-4 items-center">

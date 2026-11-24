@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -91,10 +91,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </div>
     </aside>
     <main className="main-area">
-      <div className="hidden sm:flex justify-end px-5 md:px-9 pt-4 print-hide"><NotificationsBell/></div>
-      <div className="mobile-top hidden flex-col bg-white border-b border-slate-100 px-4 py-3">
-        <div className="flex items-center justify-between"><b>contentflow</b><div className="flex items-center gap-3"><NotificationsBell/><button onClick={logout} className="text-xs text-slate-500">Sign out</button></div></div>
-        <nav className={'mobile-nav grid ' + (role === 'CLIENT' ? 'grid-cols-4' : 'grid-cols-5') + ' gap-1 w-full mt-3'}>{links.map(([href, label, Icon]) => <Link key={href} href={href} className={'mobile-nav-link ' + (path === href ? 'active' : '')}><Icon size={17}/><span>{label}</span></Link>)}</nav>
+      <div className="flex flex-col px-5 pt-4 md:px-9 max-[620px]:sticky max-[620px]:top-0 max-[620px]:z-40 max-[620px]:border-b max-[620px]:border-slate-100 max-[620px]:bg-white max-[620px]:px-4 max-[620px]:py-3 max-[620px]:shadow-sm print-hide">
+        <div className="flex items-center justify-end max-[620px]:justify-between">
+          <b className="hidden max-[620px]:block">contentflow</b>
+          <div className="flex items-center gap-3"><NotificationsBell/><button onClick={logout} className="hidden text-xs text-slate-500 max-[620px]:block">Sign out</button></div>
+        </div>
+        <nav className={'mobile-nav ' + (role === 'CLIENT' ? 'grid-cols-4' : 'grid-cols-5') + ' gap-1 w-full mt-3 hidden max-[620px]:grid'}>{links.map(([href, label, Icon]) => <Link key={href} href={href} className={'mobile-nav-link ' + (path === href ? 'active' : '')}><Icon size={17}/><span>{label}</span></Link>)}</nav>
       </div>
       {children}
     </main>

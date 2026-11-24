@@ -12,47 +12,41 @@ export default function Dashboard() {
   const [data, setData] = useState<any>(null);
   const [err, setErr] = useState('');
   const [user, setUser] = useState<any>({});
-  const [marketing, setMarketing] = useState<MarketingActivity[]>([]);
-  const [recentMarketing, setRecentMarketing] = useState<MarketingActivity[]>([]);
+  const [marketingSummary, setMarketingSummary] = useState<{ activeCampaigns: number; spendRupees: string | number } | null>(null);
+  const [recentMarketing, setRecentMarketing] = useState<MarketingActivity[] | null>(null);
   const [marketingError, setMarketingError] = useState('');
+  const [summaryError, setSummaryError] = useState('');
 
   useEffect(() => {
-    try {
-      setUser(JSON.parse(sessionStorage.getItem('cf_user') || '{}'));
-    } catch {
-      setUser({});
+    let currentUser: { role?: string; name?: string } = {};
+    try { currentUser = JSON.parse(sessionStorage.getItem('cf_user') || '{}') ?? {}; }
+    catch {}
+    setUser(currentUser);
+    if (!currentUser.role || !sessionStorage.getItem('cf_access')) return;
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    api('/dashboard/stats', { signal })
+      .then(setData)
+      .catch(e => { if (!signal.aborted) setErr(e.message); });
+
+    if (currentUser.role === 'CLIENT') {
+      const month = new Date().toISOString().slice(0, 7);
+      api<{ activeCampaigns: number; spendRupees: string | number }>(`/marketing-performance/summary?month=${month}`, { signal })
+        .then(setMarketingSummary)
+        .catch(e => { if (!signal.aborted) setSummaryError(e.message || 'Could not load marketing totals.'); });
+      api<MarketingActivity[]>('/marketing-performance?limit=5', { signal })
+        .then(setRecentMarketing)
+        .catch(e => {
+          if (!signal.aborted) setMarketingError(e.message || 'Could not load ad performance updates.');
+        });
     }
 
-    api('/dashboard/stats')
-      .then(setData)
-      .catch(e => setErr(e.message));
-
-    const month = new Date().toISOString().slice(0, 7);
-
-    api<MarketingActivity[]>(`/marketing-performance?month=${month}`)
-      .then(setMarketing)
-      .catch(() => setMarketing([]));
-
-    api<MarketingActivity[]>('/marketing-performance')
-      .then(setRecentMarketing)
-      .catch(e => {
-        setRecentMarketing([]);
-        setMarketingError(e.message || 'Could not load ad performance updates.');
-      });
+    return () => controller.abort();
   }, []);
 
   const clientView = user.role === 'CLIENT';
   const now = new Date();
-
-  const activeCampaigns = marketing.filter(item =>
-    new Date(item.uploadedAt).getTime() <= Date.now()
-    && (!item.takenDownAt || new Date(item.takenDownAt).getTime() > Date.now())
-  ).length;
-
-  const marketingSpend = marketing.reduce(
-    (total, item) => total + Number(item.spendRupees || 0),
-    0
-  );
 
   const formatRupees = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -64,8 +58,8 @@ export default function Dashboard() {
     ? [
         ['Planned content', data?.contents ?? '—', CalendarDays, '#7567F8', 'For your brand'],
         ['Upcoming shoots', data?.shoots ?? '—', Video, '#E59B43', 'For your brand'],
-        ['Active campaigns', activeCampaigns, BarChart3, '#bf2026', 'Running right now'],
-        ['Marketing spend', formatRupees.format(marketingSpend), IndianRupee, '#504c4d', 'This month']
+        ['Active campaigns', marketingSummary?.activeCampaigns ?? '\u2014', BarChart3, '#bf2026', 'Running right now'],
+        ['Marketing spend', marketingSummary ? formatRupees.format(Number(marketingSummary.spendRupees)) : '\u2014', IndianRupee, '#504c4d', 'This month']
       ]
     : [
         ['Active clients', data?.clients ?? '—', Users, '#7567F8'],
@@ -120,6 +114,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
+        {summaryError && <p role="alert" className="mb-4 text-sm text-red-600">{summaryError}</p>}
         {err && (
           <div className="panel p-4 text-sm text-red-600 mb-5">
             {err}. Check that the API is running.
@@ -295,7 +290,9 @@ export default function Dashboard() {
 
             {marketingError ? (
               <div role="alert" className="px-5 pb-6 text-sm text-red-600">{marketingError}</div>
-            ) : recentMarketing.length ? recentMarketing.slice(0, 5).map(item => (
+            ) : !recentMarketing ? (
+              <div role="status" className="px-5 pb-6 text-sm text-slate-500">Loading ad performance…</div>
+            ) : recentMarketing.length ? recentMarketing.map(item => (
               <div key={item.id} className="px-5 py-4 border-t border-slate-100 flex flex-wrap items-center gap-4">
                 {marketingImageUrls(item)[0] ? (
                   <img src={marketingImageUrls(item)[0]} alt="" className="w-14 h-14 rounded-xl object-cover bg-slate-100" />
