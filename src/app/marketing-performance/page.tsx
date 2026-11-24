@@ -320,7 +320,7 @@ export default function MarketingPerformance() {
 
       <section className="panel p-4 calendar-export-panel">
         <div className="flex flex-wrap justify-between items-center gap-3 mb-4 calendar-toolbar">
-          <div className="flex items-center gap-3">
+          <div className="calendar-month-controls flex items-center gap-3">
             <button aria-label="Previous month" className="btn btn-light !p-2" onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1))}><ChevronLeft size={17}/></button>
             <h2 className="text-xl font-extrabold min-w-40">{monthLabel}</h2>
             <button aria-label="Next month" className="btn btn-light !p-2" onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() + 1, 1))}><ChevronRight size={17}/></button>
@@ -339,7 +339,7 @@ export default function MarketingPerformance() {
         </div>
 
         {view === 'month' ? <>
-          <div className="grid grid-cols-7 text-center text-[10px] uppercase tracking-widest font-extrabold text-slate-400 mb-2">
+          <div className="calendar-scroll" role="region" aria-label="Monthly calendar" tabIndex={0}><div className="calendar-weekdays grid grid-cols-7 text-center text-[10px] uppercase tracking-widest font-extrabold text-slate-400 mb-2">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => <div key={day}>{day}</div>)}
           </div>
           <div className="calendar-grid">
@@ -371,13 +371,14 @@ export default function MarketingPerformance() {
               </>}
             </div>)}
           </div>
+          </div>
         </> : <div>
           {!loading && !error && visibleList.length === 0 && <div className="p-10 text-center text-sm text-slate-400">No ad activity for this month.</div>}
           {visibleList.map(item => {
             const [cover] = marketingImageUrls(item);
             return <button key={item.id} onClick={() => openActivity(item)} className="w-full text-left py-4 border-t border-slate-100 flex flex-wrap gap-4 items-center">
             {cover ? <img src={cover} alt="" className="w-16 h-16 object-cover rounded-xl bg-slate-100"/> : <div className="w-16 h-16 rounded-xl bg-slate-100 grid place-items-center text-slate-400"><ImagePlus size={20}/></div>}
-            <div className="flex-1 min-w-48">
+            <div className="min-w-0 flex-1 basis-36 break-words">
               <div className="flex flex-wrap items-center gap-2"><b className="text-sm">{item.creativeName}</b><span className="badge bg-slate-100 text-slate-600">{platforms.find(platform => platform[0] === item.platform)?.[1] || item.platform}</span></div>
               <p className="text-xs text-slate-500 mt-1">{item.client?.name || 'Client'} · Uploaded {fmtDate(item.uploadedAt)}{item.takenDownAt ? ' · Taken down ' + fmtDate(item.takenDownAt) : ' · Still active'}</p>
             </div>

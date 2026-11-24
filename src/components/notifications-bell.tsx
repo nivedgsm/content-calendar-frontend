@@ -84,13 +84,13 @@ export default function NotificationsBell() {
       <Bell size={18}/>
       {unreadCount > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-rose-500 px-1 text-center text-[10px] font-extrabold leading-5 text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}
     </button>
-    {open && <div className="absolute right-0 top-12 z-50 w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+    {open && <div className="notification-popover absolute right-0 top-12 z-50 w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h2 className="text-sm font-extrabold">Notifications</h2><p className="text-[11px] text-slate-400">{unreadCount ? `${unreadCount} unread` : 'You are all caught up'}</p></div>{unreadCount > 0 && <button type="button" onClick={markAllRead} className="inline-flex items-center gap-1 text-[11px] font-bold text-brand"><CheckCheck size={14}/> Mark all read</button>}</div>
       <div className="max-h-[min(65vh,480px)] overflow-y-auto">
         {loading ? <div className="p-8 text-center text-sm text-slate-400"><LoaderCircle size={18} className="mx-auto mb-2 animate-spin"/>Loading notifications</div>
           : error ? <div role="alert" className="p-5 text-sm text-red-600">{error}</div>
           : !items.length ? <div className="p-8 text-center text-sm text-slate-400">Updates about reviews and shoot schedules will show up here.</div>
-          : items.map(item => <button type="button" key={item.id} disabled={busyId === item.id} onClick={() => openNotification(item)} className={`block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 disabled:opacity-60 ${item.readAt ? '' : 'bg-violet-50/60'}`}><span className="flex items-start gap-2"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.readAt ? 'bg-transparent' : 'bg-brand'}`}/><span className="min-w-0 flex-1"><span className="block text-xs font-extrabold text-slate-800">{item.title}</span><span className="mt-1 block text-xs leading-5 text-slate-500">{item.message}</span><span className="mt-1 block text-[10px] text-slate-400">{timeLabel(item.createdAt)}</span></span></span></button>)}
+          : items.map(item => <button type="button" key={item.id} disabled={busyId === item.id} onClick={() => openNotification(item)} className={`block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 disabled:opacity-60 ${item.readAt ? '' : 'bg-violet-50/60'}`}><span className="flex items-start gap-2"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.readAt ? 'bg-transparent' : 'bg-brand'}`}/><span className="min-w-0 flex-1"><span className="block break-words text-xs font-extrabold text-slate-800">{item.title}</span><span className="mt-1 block break-words text-xs leading-5 text-slate-500">{item.message}</span><span className="mt-1 block text-[10px] text-slate-400">{timeLabel(item.createdAt)}</span></span></span></button>)}
       </div>
     </div>}
   </div>;

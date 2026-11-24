@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { BarChart3, CalendarDays, LayoutDashboard, LogOut, Settings, Sparkles, Users, Video } from 'lucide-react';
+import { BarChart3, CalendarDays, LayoutDashboard, LogOut, Settings, Users, Video } from 'lucide-react';
 import NotificationsBell from '@/components/notifications-bell';
 import { API_BASE } from '@/lib/api';
 
@@ -61,7 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return <div className="app-shell">
     <aside className="sidebar">
-     <div className="flex items-center gap-3 px-3 mb-9">
+     <div className="sidebar-brand flex items-center gap-3 px-3 mb-9">
   {/* GSM Logo */}
   <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
     <img
@@ -74,7 +74,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   {/* Brand Text */}
   <div className="brand-label min-w-0">
     <div className="font-extrabold text-[16px] leading-tight tracking-tight whitespace-nowrap">
-      Global studio Media
+      Global Studio Media
     </div>
 
     <div className="text-[10px] mt-1 tracking-[.18em] text-slate-400 font-bold whitespace-nowrap">
@@ -91,12 +91,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </div>
     </aside>
     <main className="main-area">
-      <div className="flex flex-col px-5 pt-4 md:px-9 max-[620px]:sticky max-[620px]:top-0 max-[620px]:z-40 max-[620px]:border-b max-[620px]:border-slate-100 max-[620px]:bg-white max-[620px]:px-4 max-[620px]:py-3 max-[620px]:shadow-sm print-hide">
-        <div className="flex items-center justify-end max-[620px]:justify-between">
-          <b className="hidden max-[620px]:block">contentflow</b>
-          <div className="flex items-center gap-3"><NotificationsBell/><button onClick={logout} className="hidden text-xs text-slate-500 max-[620px]:block">Sign out</button></div>
+      <div className="flex flex-col px-5 pt-4 md:px-9 max-[767px]:sticky max-[767px]:top-0 max-[767px]:z-40 max-[767px]:border-b max-[767px]:border-slate-100 max-[767px]:bg-white max-[767px]:px-4 max-[767px]:py-3 max-[767px]:shadow-sm print-hide">
+        <div className="flex items-center justify-end max-[767px]:justify-between">
+          <Link href="/dashboard" className="hidden min-w-0 items-center gap-2 font-extrabold max-[767px]:flex"><img src="/mascot-logo.png" alt="" className="h-8 w-8 shrink-0 object-contain"/>Global Studio Media</Link>
+          <div className="flex items-center gap-3"><NotificationsBell/><button onClick={logout} className="hidden min-h-11 shrink-0 px-1 text-xs text-slate-600 max-[767px]:block">Sign out</button></div>
         </div>
-        <nav className={'mobile-nav ' + (role === 'CLIENT' ? 'grid-cols-4' : 'grid-cols-5') + ' gap-1 w-full mt-3 hidden max-[620px]:grid'}>{links.map(([href, label, Icon]) => <Link key={href} href={href} className={'mobile-nav-link ' + (path === href ? 'active' : '')}><Icon size={17}/><span>{label}</span></Link>)}</nav>
+        <nav aria-label="Workspace" className={'mt-2 hidden w-full gap-1 max-[767px]:grid ' + (role === 'CLIENT' ? 'grid-cols-4' : 'grid-cols-6')}>
+          {links.map(([href, label, Icon]) => (
+            <Link key={href} href={href} aria-label={label} aria-current={path === href ? 'page' : undefined} className={'mobile-nav-link ' + (path === href ? 'active' : '')}>
+              <Icon size={17}/><span>{href === '/calendar' ? 'Content' : href === '/shoots' ? 'Shoots' : href === '/marketing-performance' ? 'Ads' : role === 'CLIENT' && href === '/dashboard' ? 'Home' : label}</span>
+            </Link>
+          ))}
+          {role !== 'CLIENT' && <Link href="/settings" aria-current={path === '/settings' ? 'page' : undefined} className={'mobile-nav-link ' + (path === '/settings' ? 'active' : '')}><Settings size={17}/><span>Settings</span></Link>}
+        </nav>
       </div>
       {children}
     </main>

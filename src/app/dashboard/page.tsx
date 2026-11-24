@@ -93,8 +93,8 @@ export default function Dashboard() {
 
             <p className="text-sm text-slate-500 mt-1">
               {clientView
-                ? 'See your upcoming content and review work from your agency.'
-                : 'Here is what is happening across your agency.'
+                ? 'See your upcoming content and review work.'
+                : 'Here is what is happening.'
               }
             </p>
           </div>
@@ -121,7 +121,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-7">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-7">
           {stats.map(([label, value, Icon, color, detail]: any) => (
             <div className="panel stat-card" key={label}>
               <div className="flex items-center justify-between">
@@ -140,7 +140,7 @@ export default function Dashboard() {
                 </span>
               </div>
 
-              <div className="text-3xl font-extrabold mt-5">
+              <div className="mt-4 text-xl font-extrabold sm:mt-5 sm:text-3xl">
                 {value}
               </div>
 
@@ -279,15 +279,14 @@ export default function Dashboard() {
             <div className="p-5 flex flex-wrap justify-between items-center gap-3">
               <div>
                 <h2 className="font-extrabold text-lg">Recent ad performance updates</h2>
-                <p className="text-xs text-slate-500 mt-1">Campaign activity shared by your agency</p>
+                <p className="text-xs text-slate-500 mt-1">Campaign activity</p>
               </div>
               <Link href="/marketing-performance" className="text-xs text-brand font-bold">
                 View ad calendar <ArrowUpRight className="inline" size={14} />
               </Link>
             </div>
 
-            <p className="mx-5 mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{adSpendGstNotice}</p>
-
+            <p className="mx-5 mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[15px] italic text-slate-500">{adSpendGstNotice}</p>
             {marketingError ? (
               <div role="alert" className="px-5 pb-6 text-sm text-red-600">{marketingError}</div>
             ) : !recentMarketing ? (
@@ -299,7 +298,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="w-14 h-14 rounded-xl bg-slate-100 grid place-items-center text-xs text-slate-400">Ad</div>
                 )}
-                <div className="flex-1 min-w-48">
+                <div className="min-w-0 flex-1 basis-36 break-words">
                   <div className="font-bold text-sm">{item.creativeName}</div>
                   <div className="text-xs text-slate-500 mt-1">
                     {item.platform} · Uploaded {fmtDate(item.uploadedAt)}

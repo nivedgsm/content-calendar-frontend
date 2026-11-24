@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -41,9 +41,9 @@ export default function Login() {
       <div className="max-w-lg relative"><div className="text-brand text-xs font-extrabold tracking-[.25em] mb-5">THE AGENCY OPERATING SYSTEM</div><h1 className="text-5xl font-extrabold leading-[1.1]">Great content starts with a clear plan.</h1><p className="text-slate-400 mt-6 leading-7">Bring every client, campaign, shoot and approval into one calm, focused workspace.</p></div>
       <div className="text-slate-500 text-xs">Copyright 2026 ContentFlow. Built for creative teams.</div>
     </section>
-    <div className="flex items-center justify-center p-7">
+    <div className="flex items-center justify-center px-5 py-8 sm:p-7">
       <form onSubmit={submit} className="w-full max-w-md">
-        <div className="lg:hidden flex items-center gap-2 mb-12"><Sparkles className="text-brand"/><b className="text-xl">contentflow</b></div>
+        <div className="lg:hidden flex items-center gap-2 mb-8 sm:mb-12"><Sparkles className="text-brand"/><b className="text-xl">contentflow</b></div>
         <div className="text-xs text-brand font-extrabold tracking-[.2em]">WELCOME BACK</div>
         <h2 className="text-3xl font-extrabold mt-3">Sign in to your workspace</h2>
         <p className="text-sm text-slate-500 mt-2 mb-8">Pick up where your team left off.</p>
@@ -52,7 +52,7 @@ export default function Login() {
         <label className="label" htmlFor="password">Password</label>
         <div className="relative mb-4">
           <input id="password" className="field pr-12" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required/>
-          <button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">
+          <button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center text-slate-500 hover:text-slate-700">
             {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
           </button>
         </div>
