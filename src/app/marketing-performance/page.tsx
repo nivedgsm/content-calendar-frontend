@@ -44,7 +44,6 @@ const blank = (clientId = '') => ({
 });
 
 const MAX_IMAGES_PER_SAVE = 10;
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 type PendingImage = { file: File; uploaded?: UploadedMarketingImage };
@@ -182,6 +181,21 @@ export default function MarketingPerformance() {
     else setSelected(item);
   }
 
+  async function uploadMarketingImage(file: File): Promise<UploadedMarketingImage> {
+    const { url, fields } = await api<{ url: string; fields: Record<string, string> }>(
+      '/marketing-performance/upload-signature', { method: 'POST' },
+    );
+    const body = new FormData();
+    for (const [name, value] of Object.entries(fields)) body.append(name, value);
+    body.append('file', file);
+    const response = await fetch(url, { method: 'POST', body });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.secure_url || result.public_id !== fields.public_id) {
+      throw new Error(result?.error?.message || 'Image storage could not complete the upload.');
+    }
+    return { imageUrl: result.secure_url, imagePublicId: result.public_id };
+  }
+
   function selectImages(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.currentTarget.files ?? []);
     event.currentTarget.value = '';
@@ -190,8 +204,8 @@ export default function MarketingPerformance() {
       setError('Choose up to 10 new images per save.');
       return;
     }
-    if (files.some(file => !IMAGE_TYPES.includes(file.type) || file.size > MAX_IMAGE_BYTES || file.size === 0)) {
-      setError('Choose JPEG, PNG, WebP or GIF images up to 4 MB each.');
+    if (files.some(file => !IMAGE_TYPES.includes(file.type) || file.size === 0)) {
+      setError('Choose non-empty JPEG, PNG, WebP or GIF images.');
       return;
     }
     setError('');
@@ -207,10 +221,8 @@ export default function MarketingPerformance() {
       for (const pending of pendingImages) {
         let uploaded = pending.uploaded;
         if (!uploaded) {
-          const upload = new FormData();
-          upload.append('image', pending.file);
           try {
-            uploaded = await api<UploadedMarketingImage>('/marketing-performance/upload', { method: 'POST', body: upload });
+            uploaded = await uploadMarketingImage(pending.file);
           } catch (cause) {
             const detail = cause instanceof Error ? cause.message : 'Upload failed.';
             throw new Error(pending.file.name + ' — ' + detail);
@@ -249,6 +261,24 @@ export default function MarketingPerformance() {
       await load();
     } catch (cause: any) {
       setError(cause.message || 'Could not save this creative.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeSavedImage(imageId: string) {
+    if (!editing || busy || !window.confirm('Delete this saved image?')) return;
+    setBusy(true);
+    setError('');
+    try {
+      const updated = await api<MarketingActivity>(
+        '/marketing-performance/' + editing.id + '/images/' + encodeURIComponent(imageId),
+        { method: 'DELETE' },
+      );
+      setEditing(updated);
+      setItems(previous => previous.map(item => item.id === updated.id ? updated : item));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not delete this image.');
     } finally {
       setBusy(false);
     }
@@ -429,9 +459,18 @@ export default function MarketingPerformance() {
         </div>
         <label className="block"><span className="label">Location (optional)</span><input className="field" maxLength={160} value={form.location} onChange={event => setForm({ ...form, location: event.target.value })}/></label>
         <label className="block"><span className="label">Total result</span><textarea className="field min-h-20" value={form.totalResult} onChange={event => setForm({ ...form, totalResult: event.target.value })} maxLength={2000}/></label>
-        <label className="block"><span className="label">Creative images (up to 10 per save, 4 MB each)</span><input className="field" type="file" multiple accept={IMAGE_TYPES.join(',')} onChange={selectImages} disabled={busy}/></label>
+        <label className="block"><span className="label">Creative images (up to 10 per save)</span><input className="field" type="file" multiple accept={IMAGE_TYPES.join(',')} onChange={selectImages} disabled={busy}/></label>
         {editing && <div className="flex flex-wrap gap-2">
-          {marketingImageUrls(editing).map((url, index) => <img key={url} src={url} alt={'Saved creative image ' + (index + 1)} className="w-20 h-20 object-cover rounded-lg bg-slate-100"/>)}
+          {marketingImageUrls(editing).map((url, index) => {
+            const imageId = editing.images?.find(image => image.imageUrl === url)?.id ?? 'legacy';
+            return <div key={url} className="flex flex-col items-center gap-1">
+              <img src={url} alt={'Saved creative image ' + (index + 1)} className="w-20 h-20 object-cover rounded-lg bg-slate-100"/>
+              <button type="button" disabled={busy} className="btn btn-light text-red-600 text-xs"
+                aria-label={'Delete saved image ' + (index + 1)} onClick={() => removeSavedImage(imageId)}>
+                <Trash2 size={14}/> Delete
+              </button>
+            </div>;
+          })}
         </div>}
         {pendingImages.length > 0 && <ul className="space-y-2">
           {pendingImages.map(({ file }, index) => <li key={index} className="flex items-center gap-3">
