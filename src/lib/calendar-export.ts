@@ -22,7 +22,7 @@ const icsEscape = (value: unknown) => String(value ?? '').replace(/\\/g, '\\\\')
 export function downloadCalendarIcs(items: CalendarItem[], month: string) {
   const events = items.map(item => {
     const date = ymd(item.date);
-    const description = [item.client?.name, item.platform, item.type, item.status?.replaceAll('_', ' '), item.theme, item.caption].filter(Boolean).join(' Â· ');
+    const description = [item.client?.name, item.platform, item.type, item.status?.replaceAll('_', ' '), item.theme, item.caption].filter(Boolean).join(' · ');
     return ['BEGIN:VEVENT', `UID:${icsEscape(item.id)}@contentflow`, `DTSTAMP:${new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replace(/\.\d{3}/, '')}`, `DTSTART;VALUE=DATE:${date}`, `DTEND;VALUE=DATE:${addOneDay(date)}`, `SUMMARY:${icsEscape(item.title)}`, `DESCRIPTION:${icsEscape(description)}`, 'END:VEVENT'].join('\r\n');
   });
   const content = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Contentflow//Content Calendar//EN', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
